@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="GridWorld/framework"/>
+	<classpathentry kind="src" path="GridWorld/projects/boxBug"/>
+	<classpathentry kind="src" path="GridWorld/projects/critters"/>
+	<classpathentry kind="src" path="GridWorld/projects/firstProject"/>
+	<classpathentry kind="lib" path="GridWorld/gridworld.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
