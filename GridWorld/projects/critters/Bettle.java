@@ -51,6 +51,20 @@ public class Bettle extends Rock{
 		nearbyEmpty = grid.getEmptyAdjacentLocations(getLocation());
 		
 		
+		if(deadMan()){
+			kill();
+		}else if(inKillZone() == 1){
+			move();
+		}else if(inKillZone() == 0){
+			fight();
+		}else{
+			Location target = nearestTarget(getLocation());
+			if(getLocation().getDirectionToward(target) == getDirection()){
+				move();
+			}else{
+				turn(target);
+			}
+		}
 		
 	}
 	
@@ -136,6 +150,7 @@ public class Bettle extends Rock{
 				result = i;
 			}
 		}
+		if (result < 0) return null;
 		return actors.get(result);
 	}
 	
@@ -150,14 +165,15 @@ public class Bettle extends Rock{
 		if(enimies.size() == 0 || enimies == null) return -1;
 		int four5Off = -1;
 		for(int i = 0; i < enimies.size(); i++){
-			int direction = (grid.get(enimies.get(i))).getDirection();
-			Location loc = enimies.get(i).getAdjacentLocation(direction);
+			Location current = enimies.get(i);
+			int direction = (grid.get(current)).getDirection();
+			Location loc = current.getAdjacentLocation(direction);
 			if( loc.equals(getLocation())){
 				return 1;
-			}else if (enimies.get(i).getAdjacentLocation(direction+45) == getLocation() || 
-					enimies.get(i).getAdjacentLocation(direction+90) == getLocation() || 
-					enimies.get(i).getAdjacentLocation(direction+270) == getLocation() || 
-					enimies.get(i).getAdjacentLocation(direction+360-45) == getLocation()
+			}else if (current.getAdjacentLocation(direction+45).equals(getLocation()) || 
+					current.getAdjacentLocation(direction+90).equals(getLocation()) || 
+					current.getAdjacentLocation(direction+270).equals(getLocation()) || 
+					current.getAdjacentLocation(direction+360-45).equals(getLocation())
 					){
 				four5Off = 0;
 			}
@@ -167,12 +183,104 @@ public class Bettle extends Rock{
 		return four5Off;
 	}
 	
+	public Location nearEnemy(){
+		ArrayList<Location> enimies = x5Targets(getLocation());
+		if(enimies.size() == 0 || enimies == null) return null;
+		for(int i = 0; i < enimies.size(); i++){
+			Location current = enimies.get(i);
+			int direction = (grid.get(current)).getDirection();
+			Location loc = current.getAdjacentLocation(direction);
+			if (current.getAdjacentLocation(direction+45).equals(getLocation()) || 
+					current.getAdjacentLocation(direction+90).equals(getLocation()) || 
+					current.getAdjacentLocation(direction+270).equals(getLocation()) || 
+					current.getAdjacentLocation(direction+360-45).equals(getLocation())
+					){
+				return current;
+			}
+			
+			//enimies.get(i).getAdjacentLocation(direction+45) == getLocation() || enimies.get(i).getAdjacentLocation(direction+90) == getLocation() || enimies.get(i).getAdjacentLocation(direction+270) == getLocation() || enimies.get(i).getAdjacentLocation(direction+360-45) == getLocation()
+		}
+		return null;
+	}
+	
+	public ArrayList<Location> killZone(){
+		ArrayList<Location> enimies = x5Targets(getLocation());
+		if(enimies.size() == 0 || enimies == null) return null;
+		
+		ArrayList<Location> result = new ArrayList<Location>();
+		
+		for(int i = 0; i < enimies.size(); i++){
+			Location current = enimies.get(i);
+			int direction = (grid.get(current)).getDirection();
+			Location loc = current.getAdjacentLocation(direction);
+			
+			result.add(loc);
+		}
+		return result;
+	}
+	
+	
+	private void avoid(){		
+		if(killZone().contains(getLocation().getAdjacentLocation(getDirection()))){
+			Rock r = new Rock();
+			r.putSelfInGrid(grid, getLocation().getAdjacentLocation(getDirection()));
+		}
+	}
+	
+	private void fight(){
+		if((getLocation().getDirectionToward(nearEnemy())- getDirection() + 360) % 180 > 90) avoid(); 
+		turn(nearEnemy());
+	}
+	
+	private void turn(Location loc){
+		int direction = getLocation().getDirectionToward(loc);
+		int diffrence = direction - getDirection();
+		if(diffrence < 0) diffrence += 360;
+		System.out.println("direction: " + direction + "   diffrence: " + diffrence);
+		//Right
+		if(diffrence <= 180){
+			if(diffrence < 90){
+				setDirection(getDirection() + 45);
+			}else{
+				setDirection(getDirection() + 90);
+			}
+		}
+		//Left
+		else{
+			if(diffrence > 270){
+				setDirection(getDirection() - 45);
+			}else{
+				setDirection(getDirection() - 90);
+			}
+		}
+		
+	}
+	
+	private void move(){
+		moveTo(getLocation().getAdjacentLocation(getDirection()));
+	}
+	
+	private boolean deadMan(){
+		if(!grid.isValid(getLocation().getAdjacentLocation(getDirection()))) return false;
+		Actor a = grid.get(getLocation().getAdjacentLocation(getDirection()));
+		if (a != null && !(a instanceof Bettle)) return true;
+		else return false;
+	}
+	
 	private void kill(Actor target){
 		target.removeSelfFromGrid();
 		targetActor = grid.get(nearestTarget(getLocation()));
 	}
 	
-	
+	private void kill(){
+		Actor target = grid.get(getLocation().getAdjacentLocation(getDirection()));
+		target.removeSelfFromGrid();
+		try{
+			targetActor = grid.get(nearestTarget(getLocation()));
+		}catch(Exception e){
+			System.out.println("Nothing Left to Hunt.");
+		}
+	}
 	
 	
 	
